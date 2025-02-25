@@ -18,5 +18,11 @@ public class Author {
     @Column(nullable = false, unique = true)
     private String email;
 
+    public Author updateAuthorInfo(String name, String email) {
+        this.name = name;
+        this.email = email;
+        return this;
+    }
+
     public record AuthorRequestBody(String name, String email) {}
 }

@@ -4,12 +4,10 @@ import com.example.CodeJuniorBackendEngineer.model.Author;
 import com.example.CodeJuniorBackendEngineer.repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.http.HttpResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("/authors")
@@ -19,10 +17,32 @@ public class AuthorController {
     AuthorRepository authorRepository;
 
     @PostMapping("")
-    public ResponseEntity<Long> createUser(@RequestBody Author.AuthorRequestBody request) {
+    public ResponseEntity<Long> createAuthor(@RequestBody Author.AuthorRequestBody request) {
         Author newAuthor = new Author(null, request.name(), request.email());
-
         return ResponseEntity.ok(authorRepository.save(newAuthor).getId());
     }
 
+    @GetMapping("")
+    public ResponseEntity<List<Author>> getAllAuthor() {
+        return ResponseEntity.ok(authorRepository.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Author> getAuthorById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(authorRepository.findById(id).get());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Long> updateAuthor(@PathVariable("id") Long id, @RequestBody Author.AuthorRequestBody request) {
+        Author author = authorRepository.findById(id).get();
+        Author updatedAuthor = author.updateAuthorInfo(request.name(), request.email());
+        return ResponseEntity.ok(authorRepository.save(updatedAuthor).getId());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Long> deleteAuthor(@PathVariable("id") Long id) {
+        Author author = authorRepository.findById(id).get();
+        authorRepository.delete(author);
+        return ResponseEntity.ok(author.getId());
+    }
 }
