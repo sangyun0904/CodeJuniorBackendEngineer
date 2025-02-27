@@ -24,7 +24,7 @@ public class BookController {
     @PostMapping("")
     public ResponseEntity<Long> createBook(@RequestBody Book.BookRequestBody request) throws ISBNValidationException, DuplicatedISBN {
 
-        if (!checkISBNValidation(request.isbn())) throw new ISBNValidationException("This ISBN is not valid!!!");
+        checkISBNValidation(request.isbn());
 
         Optional<Book> bookByISBN = bookRepository.findByIsbn(request.isbn());
         if (bookByISBN.isPresent()) throw new DuplicatedISBN("This ISBN already Exists!!!");
@@ -64,25 +64,24 @@ public class BookController {
         return ResponseEntity.ok(book.get().getId());
     }
 
-    private boolean checkISBNValidation(String isbn) {
+    private void checkISBNValidation(String isbn) {
         // 전부 숫자인지 체크
         try {
-            Integer.parseInt(isbn);
+            Long.parseLong(isbn);
         } catch (Exception e) {
-            return false;
+            throw new ISBNValidationException("ISBN은 전부 숫자로 이루어져 있어야 합니다.");
         }
 
         // 10자리인지 체크
-        if (isbn.length() != 10) return false;
+        if (isbn.length() != 10) throw new ISBNValidationException("ISBN은 10자리 숫자여야 합니다.");
 
         // 국가, 언어 식별 번호 체크
         int nationLanguageCode = Integer.parseInt(isbn.substring(0,2));
-        if (nationLanguageCode < 10 || nationLanguageCode > 90) return false;
+        if (nationLanguageCode < 10 || nationLanguageCode > 90) throw new ISBNValidationException("ISBN의 국가, 언어 식별 번호(첫 번째 두 자리)는 10~90 사이의 숫자만 허용합니다.");
 
         // 마지막 0 체크
-        if (!isbn.substring(9).equals("0")) return false;
+        if (!isbn.substring(9).equals("0")) throw new ISBNValidationException("ISBN의 마지막은 숫자 0이어야 합니다.");
 
-        return true;
     }
 
 }
