@@ -21,14 +21,14 @@ public class Book {
     private String isbn;
     private LocalDate publication_date;
     @Column(nullable = false)
-    private Long author_id;
+    private Long authorId;
 
     public Book updateBook(String title, String description, String isbn, LocalDate publication_date, Long author_id) {
         this.title = title;
         this.description = description;
         this.isbn = isbn;
         this.publication_date = publication_date;
-        this.author_id = author_id;
+        this.authorId = author_id;
 
         return this;
     }
