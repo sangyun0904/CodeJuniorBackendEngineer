@@ -24,12 +24,11 @@ public class AuthorController {
     BookRepository bookRepository;
 
     @PostMapping("")
-    public ResponseEntity<String> createAuthor(@RequestBody Author.AuthorRequestBody request) throws DuplicatedEmail {
+    public ResponseEntity<String> createAuthor(@RequestBody Author.AuthorRequestBody requestBody) throws DuplicatedEmail {
 
-        Optional<Author> authorByEmail = authorRepository.findByEmail(request.email());
-        if (authorByEmail.isPresent()) throw new DuplicatedEmail("해당 Email이 이미 존재합니다.");
+        validateAuthorRequestBody(requestBody);
 
-        Author newAuthor = new Author(null, request.name(), request.email());
+        Author newAuthor = new Author(null, requestBody.name(), requestBody.email());
         return ResponseEntity.ok("id " + authorRepository.save(newAuthor).getId() + " 저자 생성 완료.");
     }
 
@@ -47,14 +46,13 @@ public class AuthorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateAuthor(@PathVariable("id") Long authorId, @RequestBody Author.AuthorRequestBody request) {
+    public ResponseEntity<String> updateAuthor(@PathVariable("id") Long authorId, @RequestBody Author.AuthorRequestBody requestBody) {
         Optional<Author> author = authorRepository.findById(authorId);
         if (author.isEmpty()) throw new NoSuchElementException(authorId + " id의 저자가 존재하지 않습니다.");
 
-        Optional<Author> authorByEmail = authorRepository.findByEmail(request.email());
-        if (authorByEmail.isPresent()) throw new DuplicatedEmail("해당 Email이 이미 존재합니다.");
+        validateAuthorRequestBody(requestBody);
 
-        Author updatedAuthor = author.get().updateAuthorInfo(request.name(), request.email());
+        Author updatedAuthor = author.get().updateAuthorInfo(requestBody.name(), requestBody.email());
         return ResponseEntity.ok("id " + authorRepository.save(updatedAuthor).getId() + " 저자 업데이트 완료.");
     }
 
@@ -68,5 +66,14 @@ public class AuthorController {
 
         authorRepository.delete(author.get());
         return ResponseEntity.ok("id " + author.get().getId() + " 저자 삭제 완료.");
+    }
+
+    private void validateAuthorRequestBody(Author.AuthorRequestBody requestBody) {
+
+        if (requestBody.name() == null) throw new NullPointerException("저자 이름은 반드시 필요합니다.");
+        if (requestBody.email() == null) throw new NullPointerException("저자 이메일은 반드시 필요합니다.");
+
+        Optional<Author> authorByEmail = authorRepository.findByEmail(requestBody.email());
+        if (authorByEmail.isPresent()) throw new DuplicatedEmail("해당 Email이 이미 존재합니다.");
     }
 }

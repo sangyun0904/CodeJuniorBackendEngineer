@@ -25,17 +25,11 @@ public class BookController {
     private AuthorRepository authorRepository;
 
     @PostMapping("")
-    public ResponseEntity<String> createBook(@RequestBody Book.BookRequestBody request) throws ISBNValidationException, DuplicatedISBN {
+    public ResponseEntity<String> createBook(@RequestBody Book.BookRequestBody requestBody) throws ISBNValidationException, DuplicatedISBN {
 
-        checkISBNValidation(request.isbn());
+        validateBookRequestBody(requestBody);
 
-        Optional<Book> bookByISBN = bookRepository.findByIsbn(request.isbn());
-        if (bookByISBN.isPresent()) throw new DuplicatedISBN("해당 ISBN이 이미 존재합니다.");
-
-        Optional<Author> author = authorRepository.findById(request.author_id());
-        if (author.isEmpty()) throw new NoSuchElementException(request.author_id() + " id의 저자가 존재하지 않습니다.");
-
-        Book newBook = new Book(null, request.title(), request.description(), request.isbn(), LocalDate.parse(request.publication_date()), request.author_id());
+        Book newBook = new Book(null, requestBody.title(), requestBody.description(), requestBody.isbn(), LocalDate.parse(requestBody.publication_date()), requestBody.author_id());
         return ResponseEntity.ok("id " + bookRepository.save(newBook).getId() + " 도서 생성 완료.");
     }
 
@@ -53,19 +47,13 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateBook(@PathVariable("id") Long bookId, @RequestBody Book.BookRequestBody request) {
+    public ResponseEntity<String> updateBook(@PathVariable("id") Long bookId, @RequestBody Book.BookRequestBody requestBody) {
         Optional<Book> book = bookRepository.findById(bookId);
         if (book.isEmpty()) throw new NoSuchElementException(bookId + " id의 도서가 존재하지 않습니다.");
 
-        checkISBNValidation(request.isbn());
+        validateBookRequestBody(requestBody);
 
-        Optional<Book> bookByISBN = bookRepository.findByIsbn(request.isbn());
-        if (bookByISBN.isPresent()) throw new DuplicatedISBN("해당 ISBN이 이미 존재합니다.");
-
-        Optional<Author> author = authorRepository.findById(request.author_id());
-        if (author.isEmpty()) throw new NoSuchElementException(request.author_id() + " id의 저자가 존재하지 않습니다.");
-
-        Book updatedBook = book.get().updateBook(request.title(), request.description(), request.isbn(), LocalDate.parse(request.publication_date()), request.author_id());
+        Book updatedBook = book.get().updateBook(requestBody.title(), requestBody.description(), requestBody.isbn(), LocalDate.parse(requestBody.publication_date()), requestBody.author_id());
         return ResponseEntity.ok("id " + bookRepository.save(updatedBook).getId() + " 도서 업데이트 완료");
     }
 
@@ -76,6 +64,21 @@ public class BookController {
 
         bookRepository.delete(book.get());
         return ResponseEntity.ok("id " + book.get().getId() + " 도서 삭제 완료.");
+    }
+
+    private void validateBookRequestBody(Book.BookRequestBody requestBody) {
+
+        if (requestBody.title() == null) throw new NullPointerException("도서 제목은 반드시 필요합니다.");
+        if (requestBody.isbn() == null) throw new NullPointerException("도서의 ISBN은 반드시 필요합니다.");
+
+        checkISBNValidation(requestBody.isbn());
+
+        Optional<Book> bookByISBN = bookRepository.findByIsbn(requestBody.isbn());
+        if (bookByISBN.isPresent()) throw new DuplicatedISBN("해당 ISBN이 이미 존재합니다.");
+
+        Optional<Author> author = authorRepository.findById(requestBody.author_id());
+        if (author.isEmpty()) throw new NoSuchElementException(requestBody.author_id() + " id의 저자가 존재하지 않습니다.");
+
     }
 
     private void checkISBNValidation(String isbn) {
