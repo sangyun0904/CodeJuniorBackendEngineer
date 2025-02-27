@@ -2,6 +2,7 @@ package com.example.CodeJuniorBackendEngineer.controller;
 
 import com.example.CodeJuniorBackendEngineer.exceptions.DuplicatedISBN;
 import com.example.CodeJuniorBackendEngineer.exceptions.ISBNValidationException;
+import com.example.CodeJuniorBackendEngineer.model.Author;
 import com.example.CodeJuniorBackendEngineer.model.Book;
 import com.example.CodeJuniorBackendEngineer.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -38,21 +40,28 @@ public class BookController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable("id") Long bookId) {
-        return ResponseEntity.ok(bookRepository.findById(bookId).get());
+        Optional<Book> book = bookRepository.findById(bookId);
+        if (book.isEmpty()) throw new NoSuchElementException("Book by id : " + bookId + " doesn't Exists!!!");
+
+        return ResponseEntity.ok(book.get());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Long> updateBook(@PathVariable("id") Long bookId, @RequestBody Book.BookRequestBody request) {
-        Book book = bookRepository.findById(bookId).get();
-        Book updatedBook = book.updateBook(request.title(), request.description(), request.isbn(), LocalDate.parse(request.publication_date()), request.author_id());
+        Optional<Book> book = bookRepository.findById(bookId);
+        if (book.isEmpty()) throw new NoSuchElementException("Book by id : " + bookId + " doesn't Exists!!!");
+
+        Book updatedBook = book.get().updateBook(request.title(), request.description(), request.isbn(), LocalDate.parse(request.publication_date()), request.author_id());
         return ResponseEntity.ok(bookRepository.save(updatedBook).getId());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Long> deleteBook(@PathVariable("id") Long bookId) {
-        Book book = bookRepository.findById(bookId).get();
-        bookRepository.delete(book);
-        return ResponseEntity.ok(book.getId());
+        Optional<Book> book = bookRepository.findById(bookId);
+        if (book.isEmpty()) throw new NoSuchElementException("Book by id : " + bookId + " doesn't Exists!!!");
+
+        bookRepository.delete(book.get());
+        return ResponseEntity.ok(book.get().getId());
     }
 
     private boolean checkISBNValidation(String isbn) {

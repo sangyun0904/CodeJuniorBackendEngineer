@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.NoSuchElementException;
+
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(value = {DuplicatedEmail.class, DuplicatedISBN.class, ISBNValidationException.class})
-    protected ResponseEntity<Object> handleException(Exception ex) {
+    @ExceptionHandler(value = {DuplicatedEmail.class, DuplicatedISBN.class, ISBNValidationException.class, NoSuchElementException.class})
+    protected ResponseEntity<Object> handleException(RuntimeException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }

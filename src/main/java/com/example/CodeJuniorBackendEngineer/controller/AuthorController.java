@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -37,20 +38,27 @@ public class AuthorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Author> getAuthorById(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(authorRepository.findById(id).get());
+        Optional<Author> author = authorRepository.findById(id);
+        if (author.isEmpty()) throw new NoSuchElementException("Author by id : " + id + " doesn't Exists!!!");
+
+        return ResponseEntity.ok(author.get());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Long> updateAuthor(@PathVariable("id") Long id, @RequestBody Author.AuthorRequestBody request) {
-        Author author = authorRepository.findById(id).get();
-        Author updatedAuthor = author.updateAuthorInfo(request.name(), request.email());
+        Optional<Author> author = authorRepository.findById(id);
+        if (author.isEmpty()) throw new NoSuchElementException("Author by id : " + id + " doesn't Exists!!!");
+
+        Author updatedAuthor = author.get().updateAuthorInfo(request.name(), request.email());
         return ResponseEntity.ok(authorRepository.save(updatedAuthor).getId());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Long> deleteAuthor(@PathVariable("id") Long id) {
-        Author author = authorRepository.findById(id).get();
-        authorRepository.delete(author);
-        return ResponseEntity.ok(author.getId());
+        Optional<Author> author = authorRepository.findById(id);
+        if (author.isEmpty()) throw new NoSuchElementException("Author by id : " + id + " doesn't Exists!!!");
+
+        authorRepository.delete(author.get());
+        return ResponseEntity.ok(author.get().getId());
     }
 }
