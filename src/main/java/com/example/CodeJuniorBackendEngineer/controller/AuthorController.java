@@ -1,6 +1,9 @@
 package com.example.CodeJuniorBackendEngineer.controller;
 
+import com.example.CodeJuniorBackendEngineer.exceptions.DuplicatedEmail;
+import com.example.CodeJuniorBackendEngineer.exceptions.DuplicatedISBN;
 import com.example.CodeJuniorBackendEngineer.model.Author;
+import com.example.CodeJuniorBackendEngineer.model.Book;
 import com.example.CodeJuniorBackendEngineer.repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/authors")
@@ -17,7 +21,11 @@ public class AuthorController {
     AuthorRepository authorRepository;
 
     @PostMapping("")
-    public ResponseEntity<Long> createAuthor(@RequestBody Author.AuthorRequestBody request) {
+    public ResponseEntity<Long> createAuthor(@RequestBody Author.AuthorRequestBody request) throws DuplicatedEmail {
+
+        Optional<Author> authorByEmail = authorRepository.findByEmail(request.email());
+        if (authorByEmail.isPresent()) throw new DuplicatedEmail("This Email already Exists!!!");
+
         Author newAuthor = new Author(null, request.name(), request.email());
         return ResponseEntity.ok(authorRepository.save(newAuthor).getId());
     }
