@@ -8,7 +8,7 @@ git clone https://github.com/sangyun0904/CodeJuniorBackendEngineer.git
 ```
 ### 2. 프로젝트 경로로 이동 
 ```commandline
-cd CodeJuniorBackedEngineer
+cd CodeJuniorBackendEngineer
 ```
 ### 3. 프로젝트 실행 
 ```commandline
@@ -64,3 +64,4 @@ DELETE localhost:8080/books/{id}
 http://localhost:8080/swagger-ui/index.html
 
 ## 기타 주의 사항
+8080 포트가 현재 사용중은 아닌지 확인해주세요!
